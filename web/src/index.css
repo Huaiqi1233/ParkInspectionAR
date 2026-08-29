@@ -1,0 +1,127 @@
+/* 极简原型样式：不引入组件库，手写够用的表格/表单样式（确认书：禁止复杂 UI） */
+:root {
+  font-family: 'Microsoft YaHei', system-ui, sans-serif;
+  color: #222;
+  background: #f5f6f8;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+}
+
+.page {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 24px 16px;
+}
+
+.page h1 {
+  font-size: 20px;
+  margin: 0 0 16px;
+}
+
+.filters {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+
+.filters select,
+.filters button {
+  padding: 6px 10px;
+  font-size: 14px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  background: #fff;
+  cursor: pointer;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  background: #fff;
+  border: 1px solid #e0e0e0;
+}
+
+th,
+td {
+  text-align: left;
+  padding: 10px 12px;
+  border-bottom: 1px solid #eee;
+  font-size: 14px;
+  vertical-align: middle;
+}
+
+th {
+  background: #fafafa;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-size: 12px;
+  color: #fff;
+}
+
+.badge-pending { background: #e6a23c; }
+.badge-processing { background: #409eff; }
+.badge-resolved { background: #67c23a; }
+.badge-closed { background: #909399; }
+
+.pager {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  margin-top: 16px;
+  font-size: 14px;
+}
+
+.pager button {
+  padding: 6px 12px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  background: #fff;
+  cursor: pointer;
+}
+
+.pager button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.error-box {
+  border: 1px solid #f56c6c;
+  background: #fef0f0;
+  color: #f56c6c;
+  padding: 16px;
+  border-radius: 6px;
+  margin: 16px 0;
+}
+
+.error-box button {
+  margin-top: 10px;
+  padding: 6px 14px;
+  border: 1px solid #f56c6c;
+  border-radius: 4px;
+  background: #fff;
+  color: #f56c6c;
+  cursor: pointer;
+}
+
+.empty {
+  text-align: center;
+  color: #999;
+  padding: 32px 0;
+}
+
+.loading {
+  text-align: center;
+  color: #666;
+  padding: 32px 0;
+}
