@@ -1,0 +1,35 @@
+# 构建产物 / 本地数据
+*.db
+*.db-journal
+*.db-wal
+*.db-shm
+
+# Node
+node_modules/
+dist/
+web/node_modules/
+web/dist/
+
+# Unity
+unity/**/Library/
+unity/**/Temp/
+unity/**/Obj/
+unity/**/Build/
+unity/**/Builds/
+unity/**/Logs/
+unity/**/UserSettings/
+unity/**/MemoryCaptures/
+unity/**/*.csproj
+unity/**/*.sln
+unity/**/*.user
+
+# IDE / 系统
+.vs/
+.vscode/
+.idea/
+Thumbs.db
+.DS_Store
+
+# Go
+server/park-inspection.db
+server/*.exe
