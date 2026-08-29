@@ -22,6 +22,8 @@ unity/**/MemoryCaptures/
 unity/**/*.csproj
 unity/**/*.sln
 unity/**/*.user
+# Unity XR Simulation 杩愯鏃惰嚜鍔ㄧ敓鎴愶紙闈炴墜鍐欒祫浜э紝鍏ュ簱鏃犳剰涔夛級
+unity/**/Assets/XR/
 
 # IDE / 绯荤粺
 .vs/
@@ -33,3 +35,6 @@ Thumbs.db
 # Go
 server/park-inspection.db
 server/*.exe
+
+# 工具产物
+.dsh-vision-router/

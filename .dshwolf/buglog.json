@@ -1,4 +1,33 @@
 {
   "version": 1,
-  "bugs": []
+  "bugs": [
+    {
+      "id": "bug-1-mte14tsg",
+      "error_message": "PowerShell 5.1 执行含中文的 .ps1 报 ParserError（中文乱码成 鐘舵€佹祦杞）",
+      "fix": ".ps1 文件必须保存为 UTF-8 with BOM（EF-BB-BF），PowerShell 5.1 默认按 ANSI/GBK 解析无 BOM 的 UTF-8 文件。注意：edit 工具重写文件会丢 BOM，需重新添加。",
+      "file": "scripts/acceptance.ps1",
+      "at": "2026-08-29T06:58:49.168Z"
+    },
+    {
+      "id": "bug-2-mte14tsp",
+      "error_message": "PowerShell 5.1 Invoke-RestMethod POST 中文 body 落库后变乱码，详情 title 比对失败",
+      "fix": "PowerShell 5.1 对 string body 默认按 ASCII 编码发送；必须 [System.Text.Encoding]::UTF8.GetBytes($body) 转字节数组 + ContentType 'application/json; charset=utf-8'。",
+      "file": "scripts/acceptance.ps1",
+      "at": "2026-08-29T06:58:49.177Z"
+    },
+    {
+      "id": "bug-3-mte4mpob",
+      "error_message": "Unity Android 构建 \"JDK not found\" / \"SDK command-line tools not found\" / \"NDK not found\" 连环报错",
+      "fix": "Unity 2022.3 硬性要求：JDK 11（17 会被 AndroidExternalToolsSettings 校验拒绝 \"Incompatible Java version\"）；SDK 需含 cmdline-tools 6.0 且位于 Sdk\\cmdline-tools\\latest\\bin\\sdkmanager.bat；NDK 必须 r23b(23.1.7779620)（Mono 后端也要）。配置必须用官方 API UnityEditor.Android.AndroidExternalToolsSettings.{jdk,sdk,ndk}RootPath，改 EditorPrefs 键无效（键带 hash 后缀）。",
+      "file": "unity/ParkInspectionAR",
+      "at": "2026-08-29T08:36:42.491Z"
+    },
+    {
+      "id": "bug-4-mte4mpom",
+      "error_message": "Unity Android 构建 \"Invalid project path ... contains non-ASCII characters at position 3\"",
+      "fix": "Unity Android 工具不支持中文/非 ASCII 工程路径。解决：工程真身放 ASCII 路径 D:\\UnityProjects\\ParkInspectionAR，工作区 unity/ParkInspectionAR 用 mklink /J junction 指向真身（git 会跟随 junction 正常跟踪文件）。",
+      "file": "unity/ParkInspectionAR",
+      "at": "2026-08-29T08:36:42.502Z"
+    }
+  ]
 }
