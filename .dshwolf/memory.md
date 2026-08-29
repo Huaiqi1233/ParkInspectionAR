@@ -58,3 +58,17 @@ Chronological action log.
 | 2026-08-29 16:32 | edit | `D:/UnityProjects/ParkInspectionAR/Assets/Editor/AndroidToolchain.cs` | ok | 0 |
 | 2026-08-29 16:36 | write | `D:/UnityProjects/ParkInspectionAR/README.md` | ok | 0 |
 | 2026-08-29 16:36 | edit | `D:/桌面/小作业/.gitignore` | ok | 0 |
+| 2026-08-29 16:46 | write | `D:/UnityProjects/ParkInspectionAR/Assets/Editor/SimulationSetup.cs` | ok | 0 |
+| 2026-08-29 16:46 | write | `D:/UnityProjects/ParkInspectionAR/Assets/Editor/SimulationSetup.cs` | ok | 0 |
+| 2026-08-29 16:47 | write | `D:/UnityProjects/ParkInspectionAR/Assets/Editor/SimulationSetup.cs` | ok | 0 |
+| 2026-08-29 16:47 | edit | `D:/UnityProjects/ParkInspectionAR/Assets/Editor/SimulationSetup.cs` | ok | 0 |
+| 2026-08-29 16:48 | write | `D:/UnityProjects/ParkInspectionAR/Assets/Scripts/SmokeTestRunner.cs` | ok | 0 |
+| 2026-08-29 16:48 | write | `D:/UnityProjects/ParkInspectionAR/Assets/Editor/SimulationSmokeTest.cs` | ok | 0 |
+| 2026-08-29 16:55 | write | `D:/UnityProjects/ParkInspectionAR/Assets/Scripts/SmokeTestRunner.cs` | ok | 0 |
+| 2026-08-29 16:55 | edit | `D:/UnityProjects/ParkInspectionAR/Assets/Scripts/MarkerData.cs` | error | 0 |
+| 2026-08-29 16:55 | edit | `D:/UnityProjects/ParkInspectionAR/Assets/Scripts/MarkerData.cs` | ok | 0 |
+| 2026-08-29 16:56 | write | `D:/UnityProjects/ParkInspectionAR/Assets/Editor/SimulationSmokeTest.cs` | ok | 0 |
+| 2026-08-29 17:12 | write | `D:/UnityProjects/ParkInspectionAR/Assets/Editor/LogicSmokeTest.cs` | ok | 0 |
+| 2026-08-29 17:13 | edit | `D:/UnityProjects/ParkInspectionAR/Assets/Scripts/MarkerData.cs` | ok | 0 |
+| 2026-08-29 17:13 | edit | `D:/UnityProjects/ParkInspectionAR/Assets/Editor/LogicSmokeTest.cs` | ok | 0 |
+| 2026-08-29 17:14 | edit | `D:/UnityProjects/ParkInspectionAR/Assets/Scripts/MarkerData.cs` | ok | 0 |

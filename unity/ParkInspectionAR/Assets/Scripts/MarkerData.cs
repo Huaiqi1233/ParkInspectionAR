@@ -100,14 +100,16 @@ namespace ParkInspectionAR
             };
 
             // JsonUtility 不支持顶层 null 字段序列化为 null（会输出默认结构），
-            // 这里手动把 geo 从 JSON 中剔除，保证 geo 字段语义正确：
+            // 这里用正则把 geo 字段整体剔除，保证 geo 语义正确：
             // 有 GPS 带 geo，无 GPS 不带（Go 端 geo 为 nil → 响应 null）。
             var json = JsonUtility.ToJson(req);
             if (geo == null)
             {
-                // 移除 ",geo":{...} 或 "geo":{...} 片段（JsonUtility 输出格式固定为 "geo":{...}）
-                json = json.Replace(",\"geo\":{\"lat\":0,\"lng\":0}", "")
-                           .Replace("\"geo\":{\"lat\":0,\"lng\":0}", "");
+                // JsonUtility 输出数字带 .0（如 {"lat":0.0,"lng":0.0}）。
+                // 正则可选匹配前导逗号 `,`，再匹配完整 "geo":{...} 字段整体删除。
+                // 注意：前导只写 (,) 而非 (,\")——引号由后面的 \"geo\" 匹配，写重复会匹配不到前导逗号、残留双逗号。
+                json = System.Text.RegularExpressions.Regex.Replace(
+                    json, "(,)?\"geo\":\\{\"lat\":[0-9.eE+\\-]+,\"lng\":[0-9.eE+\\-]+\\}", "");
             }
             return json;
         }

@@ -51,6 +51,31 @@
       "count": 1,
       "tokens": 0,
       "first_read": "2026-08-29T08:36:49.959Z"
+    },
+    "D:/UnityProjects/ParkInspectionAR/Library/PackageCache/com.unity.xr.arfoundation@5.1.5/Editor/Simulation/SimulationEditorUtilities.cs": {
+      "count": 1,
+      "tokens": 0,
+      "first_read": "2026-08-29T08:45:59.378Z"
+    },
+    "D:/UnityProjects/ParkInspectionAR/Library/PackageCache/com.unity.xr.management@4.4.0/Editor/XRGeneralSettingsPerBuildTarget.cs": {
+      "count": 2,
+      "tokens": 0,
+      "first_read": "2026-08-29T08:47:10.258Z"
+    },
+    "D:/UnityProjects/ParkInspectionAR/Library/PackageCache/com.unity.xr.arfoundation@5.1.5/Runtime/Simulation/BaseSimulationSceneManager.cs": {
+      "count": 1,
+      "tokens": 0,
+      "first_read": "2026-08-29T08:55:22.473Z"
+    },
+    "D:/UnityProjects/ParkInspectionAR/Assets/Scripts/MarkerData.cs": {
+      "count": 1,
+      "tokens": 0,
+      "first_read": "2026-08-29T08:55:53.151Z"
+    },
+    "D:/UnityProjects/ParkInspectionAR/Assets/Editor/SimulationSmokeTest.cs": {
+      "count": 1,
+      "tokens": 0,
+      "first_read": "2026-08-29T08:56:01.123Z"
     }
   },
   "files_written": [
@@ -269,6 +294,62 @@
     {
       "file": "D:/桌面/小作业/.gitignore",
       "at": "2026-08-29T08:36:53.419Z"
+    },
+    {
+      "file": "D:/UnityProjects/ParkInspectionAR/Assets/Editor/SimulationSetup.cs",
+      "at": "2026-08-29T08:46:06.125Z"
+    },
+    {
+      "file": "D:/UnityProjects/ParkInspectionAR/Assets/Editor/SimulationSetup.cs",
+      "at": "2026-08-29T08:46:38.892Z"
+    },
+    {
+      "file": "D:/UnityProjects/ParkInspectionAR/Assets/Editor/SimulationSetup.cs",
+      "at": "2026-08-29T08:47:18.490Z"
+    },
+    {
+      "file": "D:/UnityProjects/ParkInspectionAR/Assets/Editor/SimulationSetup.cs",
+      "at": "2026-08-29T08:47:38.378Z"
+    },
+    {
+      "file": "D:/UnityProjects/ParkInspectionAR/Assets/Scripts/SmokeTestRunner.cs",
+      "at": "2026-08-29T08:48:12.349Z"
+    },
+    {
+      "file": "D:/UnityProjects/ParkInspectionAR/Assets/Editor/SimulationSmokeTest.cs",
+      "at": "2026-08-29T08:48:24.951Z"
+    },
+    {
+      "file": "D:/UnityProjects/ParkInspectionAR/Assets/Scripts/SmokeTestRunner.cs",
+      "at": "2026-08-29T08:55:44.271Z"
+    },
+    {
+      "file": "D:/UnityProjects/ParkInspectionAR/Assets/Scripts/MarkerData.cs",
+      "at": "2026-08-29T08:55:50.235Z"
+    },
+    {
+      "file": "D:/UnityProjects/ParkInspectionAR/Assets/Scripts/MarkerData.cs",
+      "at": "2026-08-29T08:55:58.065Z"
+    },
+    {
+      "file": "D:/UnityProjects/ParkInspectionAR/Assets/Editor/SimulationSmokeTest.cs",
+      "at": "2026-08-29T08:56:08.488Z"
+    },
+    {
+      "file": "D:/UnityProjects/ParkInspectionAR/Assets/Editor/LogicSmokeTest.cs",
+      "at": "2026-08-29T09:12:42.436Z"
+    },
+    {
+      "file": "D:/UnityProjects/ParkInspectionAR/Assets/Scripts/MarkerData.cs",
+      "at": "2026-08-29T09:13:46.947Z"
+    },
+    {
+      "file": "D:/UnityProjects/ParkInspectionAR/Assets/Editor/LogicSmokeTest.cs",
+      "at": "2026-08-29T09:13:52.203Z"
+    },
+    {
+      "file": "D:/UnityProjects/ParkInspectionAR/Assets/Scripts/MarkerData.cs",
+      "at": "2026-08-29T09:14:51.710Z"
     }
   ],
   "edit_counts": {
@@ -307,10 +388,15 @@
     "D:/桌面/小作业/unity/ParkInspectionAR/Assets/Editor/BuildScript.cs": 2,
     "D:/桌面/小作业/unity/ParkInspectionAR/Assets/Editor/AndroidToolchain.cs": 1,
     "D:/UnityProjects/ParkInspectionAR/Assets/Editor/AndroidToolchain.cs": 4,
-    "D:/UnityProjects/ParkInspectionAR/README.md": 1
+    "D:/UnityProjects/ParkInspectionAR/README.md": 1,
+    "D:/UnityProjects/ParkInspectionAR/Assets/Editor/SimulationSetup.cs": 4,
+    "D:/UnityProjects/ParkInspectionAR/Assets/Scripts/SmokeTestRunner.cs": 2,
+    "D:/UnityProjects/ParkInspectionAR/Assets/Editor/SimulationSmokeTest.cs": 2,
+    "D:/UnityProjects/ParkInspectionAR/Assets/Scripts/MarkerData.cs": 4,
+    "D:/UnityProjects/ParkInspectionAR/Assets/Editor/LogicSmokeTest.cs": 2
   },
   "anatomy_hits": 0,
-  "anatomy_misses": 10,
-  "repeated_reads_warned": 0,
+  "anatomy_misses": 15,
+  "repeated_reads_warned": 1,
   "cerebrum_warnings": 0
 }
