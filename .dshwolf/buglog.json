@@ -28,6 +28,13 @@
       "fix": "Unity Android 工具不支持中文/非 ASCII 工程路径。解决：工程真身放 ASCII 路径 D:\\UnityProjects\\ParkInspectionAR，工作区 unity/ParkInspectionAR 用 mklink /J junction 指向真身（git 会跟随 junction 正常跟踪文件）。",
       "file": "unity/ParkInspectionAR",
       "at": "2026-08-29T08:36:42.502Z"
+    },
+    {
+      "id": "bug-5-mte62ele",
+      "error_message": "Unity JsonUtility 序列化 null 引用字段 geo 输出 {\"lat\":0.0,\"lng\":0.0}，正则剔除后残留双逗号 `},,\"reporter\"` 造成非法 JSON",
+      "fix": "JsonUtility 不支持 null 字段输出 null（输出默认结构）。剔除 geo 的正则前导只写 (,) 匹配可选逗号，引号交给 \\\"geo\\\" 匹配；若写 (,\\\") 会匹配不到前导逗号（因引号重复），导致双逗号。正确正则：`(,)?\\\"geo\\\":\\{\"lat\":[0-9.eE+\\-]+,\"lng\":[0-9.eE+\\-]+\\}`。务必加 `!Contains(\",,\")` 回归断言。",
+      "file": "unity/ParkInspectionAR/Assets/Scripts/MarkerData.cs",
+      "at": "2026-08-29T09:16:54.242Z"
     }
   ]
 }

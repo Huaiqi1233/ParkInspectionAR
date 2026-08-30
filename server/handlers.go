@@ -21,54 +21,54 @@ func (h *Handlers) Health(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"status": "ok"})
 }
 
-// CreateMarker POST /api/v1/markers —— Unity 上报入口
+// CreateMarker POST /api/v1/markers —— Unity 上报入口（任务书 3.3：接收 Unity 上报 + 防重放）
 func (h *Handlers) CreateMarker(c *gin.Context) {
 	var req CreateMarkerRequest
-	// ShouldBindJSON：body 非法 JSON 直接 40001，不落库
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, fail(40001, "请求体不是合法 JSON: "+err.Error()))
 		return
 	}
-	// 白名单校验：type 必须命中枚举；title/reporter 非空且限长
-	if !validTypes[req.Type] {
-		c.JSON(http.StatusBadRequest, fail(40001, "type 非法: "+req.Type))
-		return
-	}
+	// 校验：title/description/priority 必填且限长（任务书表单字段）
 	req.Title = strings.TrimSpace(req.Title)
-	req.Reporter = strings.TrimSpace(req.Reporter)
+	req.Description = strings.TrimSpace(req.Description)
 	if req.Title == "" || utf8.RuneCountInString(req.Title) > 64 {
 		c.JSON(http.StatusBadRequest, fail(40001, "title 必填且不超过 64 字符"))
 		return
 	}
-	if req.Reporter == "" || utf8.RuneCountInString(req.Reporter) > 32 {
-		c.JSON(http.StatusBadRequest, fail(40001, "reporter 必填且不超过 32 字符"))
+	if req.Description == "" || utf8.RuneCountInString(req.Description) > 256 {
+		c.JSON(http.StatusBadRequest, fail(40001, "description 必填且不超过 256 字符"))
+		return
+	}
+	if !validPriorities[req.Priority] {
+		c.JSON(http.StatusBadRequest, fail(40001, "priority 非法（应为 high/medium/low）: "+req.Priority))
 		return
 	}
 
 	now := nowRFC3339()
 	m := &Marker{
-		ID:          uuid.NewString(), // 服务端生成：避免客户端并发冲突（契约决策）
-		Type:        req.Type,
+		ID:          uuid.NewString(), // 任务书 3.3：为新问题生成唯一 ID
 		Title:       req.Title,
-		Description: strings.TrimSpace(req.Description),
+		Description: req.Description,
+		Priority:    req.Priority,
 		Position:    req.Position,
-		Rotation:    req.Rotation,
-		Geo:         req.Geo,
-		Status:      "pending", // 新标注默认待处理（契约状态机起点）
-		Reporter:    req.Reporter,
+		Status:      "open", // 新标记默认 open（任务书状态机起点）
 		CreatedAt:   now,
 		UpdatedAt:   now,
 	}
 	if err := h.Store.Insert(m); err != nil {
+		if err == ErrDuplicate {
+			// 防重放：相同标题+描述+位置的重复上报 → 409
+			c.JSON(http.StatusConflict, fail(40901, "重复上报：相同位置已有相同描述的问题"))
+			return
+		}
 		c.JSON(http.StatusInternalServerError, fail(50001, "写入失败: "+err.Error()))
 		return
 	}
 	c.JSON(http.StatusCreated, ok(m))
 }
 
-// ListMarkers GET /api/v1/markers?status=&type=&page=&pageSize= —— React 列表
+// ListMarkers GET /api/v1/markers?status=&priority=&page=&pageSize= —— React 列表
 func (h *Handlers) ListMarkers(c *gin.Context) {
-	// 分页参数：非法值回退默认（page=1, pageSize=20），不报错——容错优先
 	page, _ := strconv.Atoi(c.DefaultQuery("page", "1"))
 	pageSize, _ := strconv.Atoi(c.DefaultQuery("pageSize", "20"))
 	if page < 1 {
@@ -77,12 +77,11 @@ func (h *Handlers) ListMarkers(c *gin.Context) {
 	if pageSize < 1 || pageSize > 100 {
 		pageSize = 20
 	}
-	items, total, err := h.Store.List(c.Query("status"), c.Query("type"), page, pageSize)
+	items, total, err := h.Store.List(c.Query("status"), c.Query("priority"), page, pageSize)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, fail(50001, "查询失败: "+err.Error()))
 		return
 	}
-	// 契约：列表 data 固定为 {total, items}
 	c.JSON(http.StatusOK, ok(gin.H{"total": total, "items": items}))
 }
 
@@ -100,17 +99,16 @@ func (h *Handlers) GetMarker(c *gin.Context) {
 	c.JSON(http.StatusOK, ok(m))
 }
 
-// UpdateMarker PATCH /api/v1/markers/:id —— 管理端状态流转/改标题等
+// UpdateMarker PATCH /api/v1/markers/:id —— 管理端状态流转（任务书 3.2：修改状态）
 func (h *Handlers) UpdateMarker(c *gin.Context) {
-	// 部分更新：用 map 承接任意 JSON，随后白名单过滤，
-	// 未知字段一律忽略——防止客户端注入不可控列（如篡改 created_at）
 	var patch map[string]interface{}
 	if err := c.ShouldBindJSON(&patch); err != nil {
 		c.JSON(http.StatusBadRequest, fail(40001, "请求体不是合法 JSON: "+err.Error()))
 		return
 	}
 
-	allowed := map[string]bool{"status": true, "title": true, "description": true}
+	// 白名单：status/title/description/priority，未知字段忽略（防注入）
+	allowed := map[string]bool{"status": true, "title": true, "description": true, "priority": true}
 	filtered := map[string]interface{}{}
 	for k, v := range patch {
 		if allowed[k] {
@@ -118,10 +116,15 @@ func (h *Handlers) UpdateMarker(c *gin.Context) {
 		}
 	}
 
-	// 值校验：status 必须命中枚举；title 非空限长（description 任意）
 	if v, ok := filtered["status"].(string); ok {
 		if !validStatuses[v] {
-			c.JSON(http.StatusBadRequest, fail(40001, "status 非法: "+v))
+			c.JSON(http.StatusBadRequest, fail(40001, "status 非法（应为 open/in_progress/resolved）: "+v))
+			return
+		}
+	}
+	if v, ok := filtered["priority"].(string); ok {
+		if !validPriorities[v] {
+			c.JSON(http.StatusBadRequest, fail(40001, "priority 非法: "+v))
 			return
 		}
 	}

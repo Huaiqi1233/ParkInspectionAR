@@ -12,7 +12,7 @@ namespace ParkInspectionAR
     {
         [Header("服务器配置")]
         [Tooltip("Go 后端地址：真机必须用电脑局域网 IP，不能用 localhost（那是手机自己）")]
-        public string serverBaseUrl = "http://192.168.1.100:8080";
+        public string serverBaseUrl = "http://192.168.8.111:8080";
 
         // 待重试缓存：上一次失败的上报数据（原型极简方案，不引队列/数据库）
         [HideInInspector] public string cachedJson;

@@ -69,10 +69,9 @@ th {
   color: #fff;
 }
 
-.badge-pending { background: #e6a23c; }
-.badge-processing { background: #409eff; }
-.badge-resolved { background: #67c23a; }
-.badge-closed { background: #909399; }
+.badge-priority-high { background: #f56c6c; }
+.badge-priority-medium { background: #e6a23c; }
+.badge-priority-low { background: #909399; }
 
 .pager {
   display: flex;

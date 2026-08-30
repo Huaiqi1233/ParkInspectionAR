@@ -57,12 +57,12 @@ apiClient.interceptors.response.use(
 
 // 类型化 API 方法：组件只 import 这里，不直接碰 axios
 export const api = {
-  // GET /api/v1/markers?status=&type=&page=&pageSize=
-  listMarkers(params: { status?: string; type?: string; page: number; pageSize: number }) {
+  // GET /api/v1/markers?status=&priority=&page=&pageSize=
+  listMarkers(params: { status?: string; priority?: string; page: number; pageSize: number }) {
     return apiClient.get<MarkerListData, MarkerListData>('/v1/markers', { params });
   },
-  // PATCH /api/v1/markers/:id —— 状态流转/编辑（白名单字段服务端已校验）
-  updateMarker(id: string, patch: Partial<Pick<Marker, 'status' | 'title' | 'description'>>) {
+  // PATCH /api/v1/markers/:id —— 状态流转（白名单字段服务端已校验）
+  updateMarker(id: string, patch: Partial<Pick<Marker, 'status' | 'title' | 'description' | 'priority'>>) {
     return apiClient.patch<Marker, Marker>(`/v1/markers/${id}`, patch);
   },
   // DELETE /api/v1/markers/:id

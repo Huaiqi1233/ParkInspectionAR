@@ -1,9 +1,8 @@
-// types.ts —— 三端共享数据模型的 TypeScript 声明。
-// 字段必须与 docs/api-contract.md v0.1 及 Go models.go 的 json tag 逐字对齐，
-// 否则 axios 拿到的字段名与类型会错位（这是三端契约一致性的落点）。
+// types.ts —— 三端共享数据模型的 TypeScript 声明（对齐契约 v2.0）。
+// v2.0 严格对齐任务书：priority 字段、status 三态、position 仅 x/y/z，无 rotation/geo/reporter/photoUrl/type。
 
-export type MarkerType = 'equipment' | 'hazard' | 'route_point' | 'other';
-export type MarkerStatus = 'pending' | 'processing' | 'resolved' | 'closed';
+export type MarkerPriority = 'high' | 'medium' | 'low';
+export type MarkerStatus = 'open' | 'in_progress' | 'resolved';
 
 export interface Position {
   x: number;
@@ -11,29 +10,13 @@ export interface Position {
   z: number;
 }
 
-export interface Rotation {
-  x: number;
-  y: number;
-  z: number;
-  w: number;
-}
-
-export interface Geo {
-  lat: number;
-  lng: number;
-}
-
 export interface Marker {
   id: string;
-  type: MarkerType;
   title: string;
   description: string;
-  position: Position;
-  rotation: Rotation;
-  geo: Geo | null; // 契约：geo 可空（无 GPS 时服务端返回 null）
+  priority: MarkerPriority;
   status: MarkerStatus;
-  reporter: string;
-  photoUrl: string | null; // 原型恒 null
+  position: Position;
   createdAt: string; // RFC3339
   updatedAt: string; // RFC3339
 }

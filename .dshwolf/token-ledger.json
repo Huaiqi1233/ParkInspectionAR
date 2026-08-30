@@ -6,9 +6,9 @@
   "sessions": [
     {
       "session_id": "session-3c8d0866-2373-4cb7-b42b-606a89dcfb14",
-      "agent": "deepseek-v4-flash",
-      "measured_tokens": 332031,
-      "at": "2026-08-29T09:16:51.089Z"
+      "agent": "deepseek-v4-pro",
+      "measured_tokens": 461318,
+      "at": "2026-08-30T09:56:09.086Z"
     }
   ]
 }
