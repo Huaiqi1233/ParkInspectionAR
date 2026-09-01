@@ -9,8 +9,7 @@
 ## 1. 目录结构
 
 ```
-├─ unity/            Unity AR 移动端（工程真身在 D:\UnityProjects\ParkInspectionAR，ASCII 路径）
-│   └─ ParkInspectionAR   ← junction 链接到真身
+├─ unity/            Unity AR 移动端（AR Foundation 工程源码：Assets / Packages / ProjectSettings）
 ├─ server/           Go 后端（Gin + SQLite）
 ├─ web/              React 管理端（Vite + TS + Axios）
 ├─ docs/             接口契约 + 开发计划
@@ -60,7 +59,7 @@ npm run dev            # 开发服务器 http://localhost:5173
 
 ### 3.3 Unity AR 移动端
 
-- 打开工程：`D:\UnityProjects\ParkInspectionAR`
+- 打开工程：`unity/ParkInspectionAR`（场景 `Assets/Scenes/Main.unity`）
 - 一键搭场景：菜单 `Tools → 园区巡检AR → 一键搭建场景`（自动生成 `Assets/Scenes/Main.unity`）
 - **编辑器内验证（无需真机/GMS）**：`Edit → Project Settings → XR Plug-in Management → 勾选 XR Simulation`，然后直接 Play
 - 构建 Android APK：菜单 `Tools → 园区巡检AR → 构建 Android APK`（产物 `Builds/ParkInspectionAR.apk`，或命令行 `-executeMethod ParkInspectionAR.EditorTools.BuildScript.BuildAndroid`）
@@ -110,17 +109,23 @@ public string serverBaseUrl = "http://192.168.8.111:8080";
 
 ---
 
-## 6. 未完成 / 已知问题
+## 6. 已知问题与环境限制
 
-- [ ] **演示视频**未录制（需 2 段 3-5 分钟：手机 + 电脑）
-- [ ] **交付**未提供 GitHub/Gitee/网盘链接
-- [ ] 真机依赖 **GMS + ARCore**（国行机需手动安装，见 §4）
-- [ ] ARCore 对**纯色/无纹理/反光**表面检测不到平面（环境限制，非代码问题）
-- [ ] AR 标记**不要求重启后恢复到相同物理位置**（任务书已明确豁免）
+- 真机依赖 **GMS + Google Play Services for AR**（国行机需手动安装，见 §4）
+- ARCore 对**纯色/无纹理/反光**表面检测不到平面（环境限制，非代码问题）
+- `position{x,y,z}` 为**会话内相对坐标**，重启后不恢复相同物理位置（任务书已豁免；跨设备定位由 GPS + 照片补齐）
 
 ---
 
-## 7. 验收
+## 7. 交付
+
+- **源码仓库**：https://github.com/Huaiqi1233/ParkInspectionAR（完整 Git 历史）
+- **演示视频**：随交付一并提供（手机端 + 电脑端两段）
+- **接口契约**：`docs/api-contract.md`；**黑盒测试报告**：`docs/blackbox-test-report.md`；**AI 使用记录**：`AI_log.md`
+
+---
+
+## 8. 验收
 
 ```powershell
 # Go 后端验收（注意：会清空并重建 park-inspection.db，仅限全新环境跑）

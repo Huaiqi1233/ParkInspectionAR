@@ -5,7 +5,7 @@
 - 三端（Unity AR / React / Go）必做功能与统一数据结构；
 - AI_LOG.md 记录要求；
 - 交付内容与评分关注点；
-- 当前工作区进度与待决策项（GMS 阻塞、Next phase 三选项）。
+- 当前实现状态（三端闭环已完成，含 GPS 跨设备定位与现场照片）。
 
 <!-- dsh-openwolf:start -->
 # Code Map

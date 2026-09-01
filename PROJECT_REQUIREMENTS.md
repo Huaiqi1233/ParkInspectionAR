@@ -168,23 +168,16 @@ Unity AR 拍摄标记上报  →  Go 后端保存  →  React 界面查看问题
 
 ---
 
-## 9. 当前工作区进度（交接快照）
+## 9. 当前实现状态（交接快照）
 
-> 详见 `.dshwolf/STATUS.md`，此处为要点。
+> 三端闭环已全部完成并经真机验证，详见 `README.md` 与 `docs/blackbox-test-report.md`。
 
-- ✅ **Phase 1 Go 后端**（`server/`）：6 端点 + healthz，验收 8/8 通过
+- ✅ **Phase 1 Go 后端**（`server/`）：6 端点 + healthz + SQLite 持久化 + 防重放，验收全过
 - ✅ **Phase 3 React 管理端**（`web/`）：列表/筛选/分页/状态流转/删除 + ErrorBoundary，验收通过
-- ✅ **Phase 2 Unity AR 端**（`unity/ParkInspectionAR` → junction → `D:\UnityProjects\ParkInspectionAR`）：
-  - AR Foundation 5.1.5 + ARCore 5.1.5，SceneBuilder 一键搭场景 + 3 运行时脚本
-  - Android APK 构建成功（20.6MB）
-  - 纯逻辑冒烟验证 10/10 通过（含 geo 双逗号 bug 修复）
-  - XR Simulation 已启用，但 batchmode 下 PlayMode 卡死（Unity 限制，需 GUI 手跑）
-- ⚠️ **真机走查被 GMS 阻塞**：用户手机 iQOO Neo 9 Pro（天玑 9300，硬件支持 ARCore），国行 OriginOS 无 GMS，ARCore 运行时依赖 Google Play Services for AR
-
-### 待决策（Next phase）
-- **选项 A**：装 GMS 三件套 + 侧载 ARCore → 真机走查
-- **选项 B**：Unity GUI 手动 Play 跑 XR Simulation 看 AR 交互（不需要 GMS）
-- **选项 C**：收尾归档
+- ✅ **Phase 2 Unity AR 端**（`unity/ParkInspectionAR`）：
+  - AR Foundation 5.1.5 + ARCore 5.1.5，SceneBuilder 一键搭场景 + 运行时脚本（含状态栏/平面可视化）
+  - Android APK 构建成功，真机（iQOO Neo 9 Pro + ARCore）闭环走通
+- ✅ **加分项已实现**：GPS `location{lat,lng,accuracy}` 跨设备定位 + 现场照片 `photo` 上报（三端打通）
 
 ### 环境备忘
 - Unity 2022.3.62f2 中国区版 + Android 工具链（SDK / JDK11 / NDK r23b）已配置

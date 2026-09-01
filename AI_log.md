@@ -188,7 +188,7 @@
   - Unity：`AndroidManifest.xml` 加 FINE/COARSE 定位权限 + `GpsLocator`（`Input.location` 读取）+ 提交带经纬度
   - Go：`Location` 模型 + SQLite 迁移（老库 ALTER 补列）+ 范围校验（(0,0)=未定位）
   - React：显示经纬度 + 「📍 地图」链接（高德 `uri.amap.com/marker?position=lng,lat`）
-  - 验证：Go 接口实测（带 location 存 31.2304,121.4737；不带则 0,0）；React `tsc` 通过；APK 构建 + aapt 确认权限已进包；真机待测（需手机与电脑同网段才能提交）
+  - 验证：Go 接口实测（带 location 存 31.2304,121.4737；不带则 0,0）；React `tsc` 通过；APK 构建 + aapt 确认权限已进包；真机实测 GPS 坐标/±精度/地图链接可见
 
 ---
 
