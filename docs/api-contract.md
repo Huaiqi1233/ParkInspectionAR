@@ -25,10 +25,12 @@
 |---|---|---|---|
 | `id` | string (UUID) | 服务端生成 | 为新问题生成唯一 ID（任务书 3.3）；Unity 上报时**不带**此字段 |
 | `title` | string | ✅ | 标题，≤64 字符 |
-| `description` | string | ✅ | 描述，≤256 字符（任务书表单要求：标题、描述） |
+| `description` | string | ❌（可选） | 描述，≤256 字符，允许为空（任务书 3.1：描述：可选） |
 | `priority` | enum | ✅ | `high` / `medium` / `low`（任务书 3.1 表单要求优先级） |
 | `status` | enum | 服务端默认 `open` | `open` / `in_progress` / `resolved`（任务书 3.2 状态三态） |
 | `position` | {x,y,z} (float) | ✅ | AR 会话空间坐标（任务书：位置 x/y/z；仅三个分量，无 rotation） |
+| `location` | {lat,lng,accuracy} (float) | ❌（可选） | GPS 经纬度 + 精度米（方案 A：跨设备定位）；`(0,0)` 表示未定位，`accuracy=0` 未知 |
+| `photo` | string (base64 JPEG) | ❌（可选） | 现场照片（方案 C：人找点位辅助）；base64 ≤1MB |
 | `createdAt` | string (RFC3339) | 服务端生成 | 如 `2026-08-29T06:40:00+08:00` |
 | `updatedAt` | string (RFC3339) | 服务端生成 | 每次更新重写 |
 
