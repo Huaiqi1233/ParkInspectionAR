@@ -1,7 +1,7 @@
 // client.ts —— Axios 实例 + 信封解包 + 错误归一化。
 // 为什么统一在这里解信封：所有 API 响应都是 {code,message,data}，
 // 组件层只关心 data 或抛出的 ApiError，不重复处理信封结构。
-import axios, { AxiosError } from 'axios';
+import axios, { AxiosError, type AxiosResponse } from 'axios';
 import type { Envelope, Marker, MarkerListData } from './types';
 
 // ApiError：业务/网络错误统一形态，ErrorBoundary 与组件据此渲染
@@ -37,8 +37,10 @@ apiClient.interceptors.response.use(
     if (body && typeof body.code === 'number' && body.code !== 0) {
       throw new ApiError(body.message || '业务错误', body.code, response.status);
     }
-    // 成功：直接把 data 交给调用方，组件层无需再 .data.data
-    return { ...response, data: body.data };
+    // 成功：直接把 data 交给调用方（解信封），组件层拿到的就是 data 本身（无需再 .data.data）
+    // 注意：必须返回 body.data 而不是 {...response, data: body.data}，后者是完整响应，
+    // 组件按 data.items 取值会得到 undefined → 渲染崩溃被 ErrorBoundary 误报为"后端不可用"。
+    return body.data as unknown as AxiosResponse;
   },
   (error: AxiosError<Envelope<unknown>>) => {
     if (error.response) {

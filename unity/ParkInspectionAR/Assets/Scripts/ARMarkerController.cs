@@ -22,6 +22,7 @@ namespace ParkInspectionAR
     public class ARMarkerController : MonoBehaviour
     {
         private ARRaycastManager raycastManager;
+        private ARPlaneManager planeManager;
         private Camera arCamera;
 
         private GameObject preview;         // 半透明预览体（待确认）
@@ -36,7 +37,12 @@ namespace ParkInspectionAR
         void Awake()
         {
             raycastManager = GetComponent<ARRaycastManager>();
+            planeManager = GetComponent<ARPlaneManager>();
             arCamera = GetComponentInChildren<Camera>();
+            if (raycastManager == null)
+                Debug.LogError("[ARMarker] ARRaycastManager 未找到（应与本组件同挂 XR Origin）");
+            if (planeManager == null)
+                Debug.LogError("[ARMarker] ARPlaneManager 未找到");
         }
 
         void Update()
@@ -55,14 +61,15 @@ namespace ParkInspectionAR
 
         void HandleTouch(Touch touch)
         {
+            if (touch.phase != TouchPhase.Began)
+            {
+                return;
+            }
             // 关键：带 fingerId 的 IsPointerOverGameObject。
             // 手指按在 UI 上时返回 true → 忽略，不发射 AR 射线
             if (EventSystem.current != null && EventSystem.current.IsPointerOverGameObject(touch.fingerId))
             {
-                return;
-            }
-            if (touch.phase != TouchPhase.Began)
-            {
+                Debug.Log("[ARMarker] 点击被 UI 拦截 fingerId=" + touch.fingerId + " pos=" + touch.position);
                 return;
             }
 
@@ -108,8 +115,13 @@ namespace ParkInspectionAR
 
         void TryPlace(Vector2 screenPos)
         {
-            // 只检测平面多边形内部
-            if (raycastManager.Raycast(screenPos, hits, TrackableType.PlaneWithinPolygon))
+            if (raycastManager == null)
+            {
+                Debug.LogError("[ARMarker] ARRaycastManager 为 null，无法投放");
+                return;
+            }
+            // 只检测平面多边形内部；叠加 PlaneEstimated 兼容"已显示但尚未完全追踪"的平面
+            if (raycastManager.Raycast(screenPos, hits, TrackableType.PlaneWithinPolygon | TrackableType.PlaneEstimated))
             {
                 CurrentPose = hits[0].pose;
                 HasPlacement = true;
@@ -121,7 +133,13 @@ namespace ParkInspectionAR
                 preview.transform.SetPositionAndRotation(CurrentPose.position, CurrentPose.rotation);
                 preview.SetActive(true);
 
+                Debug.Log("[ARMarker] 射线命中平面 pos=" + CurrentPose.position + " screenPos=" + screenPos);
                 FindObjectOfType<ReportPanelUI>()?.ShowPanel(true);
+            }
+            else
+            {
+                Debug.Log("[ARMarker] 射线未命中平面 screenPos=" + screenPos +
+                    " 平面数=" + (planeManager != null ? planeManager.trackables.count : -1));
             }
         }
 
@@ -129,7 +147,7 @@ namespace ParkInspectionAR
         {
             var go = GameObject.CreatePrimitive(PrimitiveType.Cube);
             go.name = "MarkerPreview";
-            var mat = new Material(Shader.Find("Standard"));
+            var mat = new Material(Shader.Find("Sprites/Default")); // 不用 Standard：Android 构建会裁剪它，Shader.Find 返回 null 抛 ArgumentNullException
             mat.color = new Color(0.2f, 0.8f, 1f, 0.4f);
             go.GetComponent<Renderer>().sharedMaterial = mat;
             go.transform.localScale = new Vector3(0.15f, 0.15f, 0.15f);
@@ -142,7 +160,7 @@ namespace ParkInspectionAR
         {
             if (preview != null)
             {
-                var mat = new Material(Shader.Find("Standard"));
+                var mat = new Material(Shader.Find("Sprites/Default")); // 不用 Standard：Android 构建会裁剪它，Shader.Find 返回 null 抛 ArgumentNullException
                 mat.color = new Color(0.2f, 0.8f, 1f, 1f);
                 preview.GetComponent<Renderer>().sharedMaterial = mat;
 

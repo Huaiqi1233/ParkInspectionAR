@@ -13,7 +13,10 @@ namespace ParkInspectionAR
         private MarkerSubmitter submitter;
 
         private GameObject panel;
-        private Dropdown priorityDropdown;  // 优先级：high/medium/low
+        private GameObject toastGo;                 // toast 容器（用于显示/隐藏 + 自动消失）
+        private Coroutine toastHideCoroutine;       // 自动隐藏协程
+        private string selectedPriority = "high";  // 当前优先级（默认 high）
+        private readonly System.Collections.Generic.Dictionary<string, Button> priorityButtons = new System.Collections.Generic.Dictionary<string, Button>();
         private InputField titleInput;      // 标题
         private InputField descInput;       // 描述
         private Text positionText;          // 位置只读显示（AR 自动填充）
@@ -25,6 +28,7 @@ namespace ParkInspectionAR
         {
             controller = FindObjectOfType<ARMarkerController>();
             submitter = FindObjectOfType<MarkerSubmitter>();
+            GpsLocator.EnsureStarted(); // 提前请求定位权限并启动 GPS（方案 A），提交时大概率已有定位
             BuildUI();
             if (submitter != null)
             {
@@ -55,13 +59,7 @@ namespace ParkInspectionAR
         // 查看已放置标记的输入内容（任务书 3.1：点击标记查看输入）
         public void ShowViewPanel(string title, string description, string priority, string positionText)
         {
-            // 复用 toast 区域显示标记详情
-            if (toastText != null)
-            {
-                toastText.text = string.Format("[{0}] {1}\n{2}\n{3}", priority, title, description, positionText);
-                toastText.fontSize = 34;
-                toastText.alignment = TextAnchor.MiddleLeft;
-            }
+            ShowToast(string.Format("[{0}] {1}\n{2}\n{3}", priority, title, description, positionText));
             Debug.Log($"[ReportPanel] 查看标记: {title} / {description} / {priority} / {positionText}");
         }
 
@@ -88,20 +86,19 @@ namespace ParkInspectionAR
                 ShowToast("请填写标题");
                 return;
             }
-            var desc = descInput.text.Trim();
-            if (desc.Length == 0)
-            {
-                ShowToast("请填写描述");
-                return;
-            }
+            var desc = descInput.text.Trim(); // 描述：可选（任务书 3.1），不校验非空
             // 若尚未在 AR 平面放置标记，用当前相机前方位置兜底（保证功能连通）
             var pose = controller != null && controller.HasPlacement
                 ? controller.CurrentPose
                 : new Pose(Vector3.zero, Quaternion.identity);
 
-            var priority = priorityDropdown.options[priorityDropdown.value].text;
-            var json = MarkerJson.BuildCreateJson(title, desc, priority, pose);
-            Debug.Log("[ReportPanel] 提交 JSON: " + json);
+            var priority = selectedPriority;
+            GpsLocator.TryGet(out float lat, out float lng, out float accuracy); // 失败为 (0,0)，后端视为未定位
+            var photo = PhotoCapture.CaptureBase64(); // 现场照片（方案 C），失败为空串
+            var json = MarkerJson.BuildCreateJson(title, desc, priority, pose, lat, lng, accuracy, photo);
+            // photo 是 base64 很大，日志截断避免刷屏
+            Debug.Log("[ReportPanel] 提交 JSON(长度=" + json.Length + "): " +
+                (json.Length > 300 ? json.Substring(0, 300) + "…" : json));
             submitter.Submit(json);
             ShowToast("提交中…");
         }
@@ -131,8 +128,12 @@ namespace ParkInspectionAR
                     controller.ConfirmVisual(
                         titleInput.text.Trim(),
                         descInput.text.Trim(),
-                        priorityDropdown.options[priorityDropdown.value].text);
+                        selectedPriority);
                 }
+                // 成功后隐藏面板并清空表单，允许继续点平面放置新标记（"已上报"提示仍在顶部 toast 显示）
+                ShowPanel(false);
+                titleInput.text = "";
+                descInput.text = "";
             }
         }
 
@@ -141,8 +142,19 @@ namespace ParkInspectionAR
             if (toastText != null)
             {
                 toastText.text = msg;
+                toastText.fontSize = 32;              // 复位（ShowViewPanel 可能改过）
+                toastText.alignment = TextAnchor.MiddleCenter;
+                if (toastGo != null) toastGo.SetActive(true);
+                if (toastHideCoroutine != null) StopCoroutine(toastHideCoroutine);
+                toastHideCoroutine = StartCoroutine(HideToastAfter(2.5f)); // 2.5s 后自动消失
             }
             Debug.Log("[ReportPanel] " + msg);
+        }
+
+        System.Collections.IEnumerator HideToastAfter(float delay)
+        {
+            yield return new WaitForSeconds(delay);
+            if (toastGo != null) toastGo.SetActive(false);
         }
 
         // ---- UI 构建（简洁大字）----
@@ -153,14 +165,14 @@ namespace ParkInspectionAR
             panel.transform.SetParent(transform, false);
             var rt = panel.GetComponent<RectTransform>();
             rt.anchorMin = new Vector2(0f, 0f);
-            rt.anchorMax = new Vector2(1f, 0.55f); // 占屏幕下半 55%
+            rt.anchorMax = new Vector2(1f, 0.35f); // 只占屏幕下 35%，给上方平面留出可点区域
             rt.offsetMin = Vector2.zero;
             rt.offsetMax = Vector2.zero;
             var bg = panel.AddComponent<Image>();
             bg.color = new Color(0f, 0f, 0f, 0.75f);
             var layout = panel.GetComponent<VerticalLayoutGroup>();
-            layout.padding = new RectOffset(20, 20, 20, 20);
-            layout.spacing = 16;
+            layout.padding = new RectOffset(14, 14, 12, 12);
+            layout.spacing = 8;
 
             // 标题输入
             titleInput = CreateInputField("TitleInput", "标题（如：3号楼前地面破损）");
@@ -168,10 +180,22 @@ namespace ParkInspectionAR
             // 描述输入
             descInput = CreateInputField("DescInput", "描述（如：地面有约30cm裂缝）");
 
-            // 优先级下拉
-            priorityDropdown = CreateDropdown("PriorityDropdown");
-            priorityDropdown.ClearOptions();
-            priorityDropdown.AddOptions(new System.Collections.Generic.List<string> { "high", "medium", "low" });
+            // 优先级选择：3 个按钮（high/medium/low）。
+            // 为什么不用 Dropdown：程序化创建的 Dropdown 缺 template/targetGraphic，无法弹出选项列表，手机上点不动。
+            var priorityRow = new GameObject("PriorityRow", typeof(RectTransform), typeof(HorizontalLayoutGroup));
+            priorityRow.transform.SetParent(panel.transform, false);
+            var prLayout = priorityRow.GetComponent<HorizontalLayoutGroup>();
+            prLayout.spacing = 16;
+            prLayout.childForceExpandWidth = true;
+            prLayout.childControlWidth = true;
+            foreach (var p in new[] { "high", "medium", "low" })
+            {
+                var captured = p; // 闭包捕获：避免 foreach 变量复用
+                var pbtn = CreateButton("Priority_" + p, p, priorityRow.transform, new Color(0.4f, 0.4f, 0.45f, 1f));
+                pbtn.onClick.AddListener(() => SetPriority(captured));
+                priorityButtons[captured] = pbtn;
+            }
+            SetPriority("high");
 
             // 位置只读显示
             positionText = CreateLabel("PositionText", "位置: 未放置");
@@ -191,11 +215,33 @@ namespace ParkInspectionAR
             retryBtn.onClick.AddListener(OnRetryClick);
             retryBtn.gameObject.SetActive(false);
 
-            // Toast 提示
-            toastText = CreateLabel("Toast", "");
-            toastText.alignment = TextAnchor.MiddleCenter;
-            toastText.fontSize = 40;
+            // Toast 提示：独立于表单面板，放在顶部状态栏下方（不遮挡底部平面）。
+            // 为什么独立：提交成功后要隐藏面板，但"已上报"提示仍需可见，所以 toast 不能挂在 panel 下。
+            // 注意：uGUI 一个 GameObject 只能挂一个 Graphic（Image/Text 互斥），所以 Text 必须是 Image 的子节点。
+            toastGo = new GameObject("Toast", typeof(RectTransform), typeof(Image));
+            toastGo.transform.SetParent(transform, false); // 挂 Canvas，不是 panel
+            var toastRt = toastGo.GetComponent<RectTransform>();
+            toastRt.anchorMin = new Vector2(0.05f, 0.76f);
+            toastRt.anchorMax = new Vector2(0.95f, 0.90f);
+            toastRt.offsetMin = Vector2.zero;
+            toastRt.offsetMax = Vector2.zero;
+            var toastBg = toastGo.GetComponent<Image>();
+            toastBg.color = new Color(0f, 0f, 0f, 0.65f);
+
+            var toastTextGo = new GameObject("Text", typeof(RectTransform));
+            toastTextGo.transform.SetParent(toastGo.transform, false);
+            var toastTextRt = toastTextGo.GetComponent<RectTransform>();
+            toastTextRt.anchorMin = Vector2.zero;
+            toastTextRt.anchorMax = Vector2.one;
+            toastTextRt.offsetMin = Vector2.zero;
+            toastTextRt.offsetMax = Vector2.zero;
+            toastText = toastTextGo.AddComponent<Text>();
+            toastText.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+            toastText.fontSize = 32;
             toastText.color = new Color(1f, 0.9f, 0.3f, 1f);
+            toastText.alignment = TextAnchor.MiddleCenter;
+            toastText.supportRichText = false;
+            toastGo.SetActive(false); // 初始隐藏，ShowToast 时再显示
 
             // 面板初始隐藏，等 AR 放置后弹出
             panel.SetActive(false);
@@ -203,20 +249,17 @@ namespace ParkInspectionAR
 
         // ---- 控件工厂（统一大字 40-44px）----
 
-        Dropdown CreateDropdown(string name)
+        // 选中优先级：高亮选中按钮（绿），其余灰
+        void SetPriority(string value)
         {
-            var go = new GameObject(name, typeof(RectTransform));
-            go.transform.SetParent(panel.transform, false);
-            var dd = go.AddComponent<Dropdown>();
-            var labelGo = new GameObject("Label", typeof(RectTransform));
-            labelGo.transform.SetParent(go.transform, false);
-            var txt = labelGo.AddComponent<Text>();
-            txt.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
-            txt.fontSize = 42;
-            txt.color = Color.black;
-            txt.alignment = TextAnchor.MiddleLeft;
-            dd.captionText = txt;
-            return dd;
+            selectedPriority = value;
+            foreach (var kv in priorityButtons)
+            {
+                var img = kv.Value.GetComponent<Image>();
+                img.color = kv.Key == value
+                    ? new Color(0.2f, 0.7f, 0.3f, 1f)   // 选中：绿
+                    : new Color(0.4f, 0.4f, 0.45f, 1f);  // 未选中：灰
+            }
         }
 
         InputField CreateInputField(string name, string placeholder)
@@ -228,14 +271,14 @@ namespace ParkInspectionAR
             phGo.transform.SetParent(go.transform, false);
             var ph = phGo.AddComponent<Text>();
             ph.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
-            ph.fontSize = 40;
+            ph.fontSize = 32;
             ph.color = new Color(0.7f, 0.7f, 0.7f, 1f);
             ph.text = placeholder;
             var textGo = new GameObject("Text", typeof(RectTransform));
             textGo.transform.SetParent(go.transform, false);
             var txt = textGo.AddComponent<Text>();
             txt.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
-            txt.fontSize = 40;
+            txt.fontSize = 32;
             txt.color = Color.white;
             txt.supportRichText = false;
             input.textComponent = txt;
@@ -249,7 +292,7 @@ namespace ParkInspectionAR
             go.transform.SetParent(panel.transform, false);
             var txt = go.AddComponent<Text>();
             txt.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
-            txt.fontSize = 40;
+            txt.fontSize = 28;
             txt.color = Color.white;
             txt.text = content;
             return txt;
@@ -266,7 +309,7 @@ namespace ParkInspectionAR
             txtGo.transform.SetParent(go.transform, false);
             var txt = txtGo.AddComponent<Text>();
             txt.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
-            txt.fontSize = 44;
+            txt.fontSize = 34;
             txt.color = Color.white;
             txt.text = label;
             txt.alignment = TextAnchor.MiddleCenter;

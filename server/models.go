@@ -12,6 +12,8 @@ type Marker struct {
 	Priority    string   `json:"priority"`
 	Status      string   `json:"status"`
 	Position    Position `json:"position"`
+	Location    Location `json:"location"` // 可选 GPS（0,0 表示未定位）
+	Photo       string   `json:"photo"`    // 可选现场照片（base64 JPEG，方案 C）
 	CreatedAt   string   `json:"createdAt"`
 	UpdatedAt   string   `json:"updatedAt"`
 }
@@ -23,6 +25,14 @@ type Position struct {
 	Z float64 `json:"z"`
 }
 
+// Location GPS 经纬度（方案 A：跨设备定位，加分项）。可选：lat/lng 为 0 表示未定位。
+// Accuracy 为定位精度（米），0 表示未知。
+type Location struct {
+	Lat      float64 `json:"lat"`
+	Lng      float64 `json:"lng"`
+	Accuracy float64 `json:"accuracy"`
+}
+
 // CreateMarkerRequest POST 入参：id/status/createdAt/updatedAt 由服务端生成，
 // 客户端（Unity）只允许提交业务字段（任务书 3.1 表单：标题/描述/优先级/位置）。
 type CreateMarkerRequest struct {
@@ -30,6 +40,8 @@ type CreateMarkerRequest struct {
 	Description string   `json:"description"`
 	Priority    string   `json:"priority"`
 	Position    Position `json:"position"`
+	Location    Location `json:"location"` // 可选 GPS
+	Photo       string   `json:"photo"`    // 可选现场照片（base64 JPEG）
 }
 
 // Envelope 三端统一响应信封。data 用 omitempty：失败响应不带 data 字段。

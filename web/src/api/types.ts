@@ -10,6 +10,13 @@ export interface Position {
   z: number;
 }
 
+// GPS 经纬度（方案 A：跨设备定位，加分项）。(0,0) 表示未定位；accuracy 为精度（米，0=未知）。
+export interface Location {
+  lat: number;
+  lng: number;
+  accuracy: number;
+}
+
 export interface Marker {
   id: string;
   title: string;
@@ -17,6 +24,8 @@ export interface Marker {
   priority: MarkerPriority;
   status: MarkerStatus;
   position: Position;
+  location: Location; // 可选 GPS，(0,0)=未定位
+  photo: string; // 可选现场照片（base64 JPEG，方案 C），空串=无
   createdAt: string; // RFC3339
   updatedAt: string; // RFC3339
 }

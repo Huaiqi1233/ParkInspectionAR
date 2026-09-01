@@ -35,12 +35,27 @@ func (h *Handlers) CreateMarker(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, fail(40001, "title 必填且不超过 64 字符"))
 		return
 	}
-	if req.Description == "" || utf8.RuneCountInString(req.Description) > 256 {
-		c.JSON(http.StatusBadRequest, fail(40001, "description 必填且不超过 256 字符"))
+	if req.Description == "" {
+		// 描述：可选（任务书 3.1 只要求"标题：必填；描述：可选"），空描述直接存空串
+		req.Description = ""
+	} else if utf8.RuneCountInString(req.Description) > 256 {
+		c.JSON(http.StatusBadRequest, fail(40001, "description 不超过 256 字符"))
 		return
 	}
 	if !validPriorities[req.Priority] {
 		c.JSON(http.StatusBadRequest, fail(40001, "priority 非法（应为 high/medium/low）: "+req.Priority))
+		return
+	}
+	// 位置可选（方案 A：GPS 跨设备定位）：(0,0) 视为未定位；非零则校验经纬度范围
+	if req.Location.Lat != 0 || req.Location.Lng != 0 {
+		if req.Location.Lat < -90 || req.Location.Lat > 90 || req.Location.Lng < -180 || req.Location.Lng > 180 {
+			c.JSON(http.StatusBadRequest, fail(40001, "location 非法：lat∈[-90,90], lng∈[-180,180]"))
+			return
+		}
+	}
+	// 现场照片可选（方案 C）：base64 字符串，限 1MB，防止超大请求
+	if len(req.Photo) > 1_000_000 {
+		c.JSON(http.StatusBadRequest, fail(40001, "photo 过大（base64 超过 1MB）"))
 		return
 	}
 
@@ -51,7 +66,9 @@ func (h *Handlers) CreateMarker(c *gin.Context) {
 		Description: req.Description,
 		Priority:    req.Priority,
 		Position:    req.Position,
-		Status:      "open", // 新标记默认 open（任务书状态机起点）
+		Location:    req.Location, // 可选 GPS，未定位为 (0,0)
+		Photo:       req.Photo,    // 可选现场照片
+		Status:      "open",        // 新标记默认 open（任务书状态机起点）
 		CreatedAt:   now,
 		UpdatedAt:   now,
 	}

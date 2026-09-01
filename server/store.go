@@ -29,6 +29,8 @@ CREATE TABLE IF NOT EXISTS markers (
 	description TEXT NOT NULL,
 	priority    TEXT NOT NULL,
 	pos_x REAL NOT NULL, pos_y REAL NOT NULL, pos_z REAL NOT NULL,
+	lat REAL NOT NULL DEFAULT 0, lng REAL NOT NULL DEFAULT 0, acc REAL NOT NULL DEFAULT 0,
+	photo       TEXT NOT NULL DEFAULT '',
 	status      TEXT NOT NULL DEFAULT 'open',
 	dedup_hash  TEXT NOT NULL UNIQUE,
 	created_at  TEXT NOT NULL,
@@ -39,7 +41,53 @@ CREATE INDEX IF NOT EXISTS idx_markers_priority ON markers(priority);`)
 	if err != nil {
 		return nil, fmt.Errorf("migrate: %w", err)
 	}
+
+	// 老库迁移：补 lat/lng/acc/photo 列（SQLite 无 ADD COLUMN IF NOT EXISTS，先查表结构）
+	if err := migrateColumns(db); err != nil {
+		return nil, fmt.Errorf("migrate columns: %w", err)
+	}
 	return db, nil
+}
+
+// migrateColumns 给已存在的旧库补 lat/lng/acc/photo 列（新库建表已含，不会重复执行）
+func migrateColumns(db *sql.DB) error {
+	rows, err := db.Query("PRAGMA table_info(markers)")
+	if err != nil {
+		return err
+	}
+	defer rows.Close()
+	cols := map[string]bool{}
+	for rows.Next() {
+		var cid int
+		var name, ctype string
+		var notnull int
+		var dflt interface{}
+		var pk int
+		if err := rows.Scan(&cid, &name, &ctype, &notnull, &dflt, &pk); err != nil {
+			return err
+		}
+		cols[name] = true
+	}
+	addCol := func(col, ddl string) error {
+		if cols[col] {
+			return nil
+		}
+		_, err := db.Exec("ALTER TABLE markers ADD COLUMN " + ddl)
+		return err
+	}
+	if err := addCol("lat", "lat REAL NOT NULL DEFAULT 0"); err != nil {
+		return err
+	}
+	if err := addCol("lng", "lng REAL NOT NULL DEFAULT 0"); err != nil {
+		return err
+	}
+	if err := addCol("acc", "acc REAL NOT NULL DEFAULT 0"); err != nil {
+		return err
+	}
+	if err := addCol("photo", "photo TEXT NOT NULL DEFAULT ''"); err != nil {
+		return err
+	}
+	return rows.Err()
 }
 
 // dedupHash 计算防重放哈希（任务书 3.3）：title+description+position 三者组合。
@@ -58,6 +106,8 @@ func scanRow(row scanner) (Marker, error) {
 	err := row.Scan(
 		&m.ID, &m.Title, &m.Description, &m.Priority,
 		&m.Position.X, &m.Position.Y, &m.Position.Z,
+		&m.Location.Lat, &m.Location.Lng, &m.Location.Accuracy,
+		&m.Photo,
 		&m.Status, &m.CreatedAt, &m.UpdatedAt,
 	)
 	if err != nil {
@@ -75,10 +125,14 @@ func (s *Store) Insert(m *Marker) error {
 INSERT INTO markers
 (id, title, description, priority,
  pos_x, pos_y, pos_z,
+ lat, lng, acc,
+ photo,
  status, dedup_hash, created_at, updated_at)
-VALUES (?,?,?,?, ?,?,?, ?,?,?,?)`,
+VALUES (?,?,?,?, ?,?,?, ?,?,?, ?, ?,?,?,?)`,
 		m.ID, m.Title, m.Description, m.Priority,
 		m.Position.X, m.Position.Y, m.Position.Z,
+		m.Location.Lat, m.Location.Lng, m.Location.Accuracy,
+		m.Photo,
 		m.Status, dedupHash(m), m.CreatedAt, m.UpdatedAt)
 	if err != nil {
 		// SQLite UNIQUE 约束冲突 = 防重放命中
@@ -95,6 +149,8 @@ func (s *Store) Get(id string) (Marker, error) {
 	row := s.DB.QueryRow(`
 SELECT id,title,description,priority,
        pos_x,pos_y,pos_z,
+       lat,lng,acc,
+       photo,
        status,created_at,updated_at
 FROM markers WHERE id = ?`, id)
 	return scanRow(row)
@@ -122,6 +178,8 @@ func (s *Store) List(status, priority string, page, pageSize int) ([]Marker, int
 	rows, err := s.DB.Query(`
 SELECT id,title,description,priority,
        pos_x,pos_y,pos_z,
+       lat,lng,acc,
+       photo,
        status,created_at,updated_at
 FROM markers`+cond+` ORDER BY created_at DESC LIMIT ? OFFSET ?`,
 		append(args, pageSize, (page-1)*pageSize)...)

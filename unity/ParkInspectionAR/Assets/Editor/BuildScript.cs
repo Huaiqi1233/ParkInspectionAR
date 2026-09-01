@@ -32,6 +32,9 @@ namespace ParkInspectionAR.EditorTools
             PlayerSettings.SetApplicationIdentifier(BuildTargetGroup.Android, PackageName);
             PlayerSettings.Android.minSdkVersion = AndroidSdkVersions.AndroidApiLevel24;
             PlayerSettings.Android.targetSdkVersion = AndroidSdkVersions.AndroidApiLevel33;
+            // 允许明文 HTTP：Go 后端是局域网 http://，Android 9+ 默认禁明文，
+            // 否则 UnityWebRequest 抛 "InvalidOperationException: Insecure connection not allowed"
+            PlayerSettings.insecureHttpOption = InsecureHttpOption.AlwaysAllowed;
             // 图形 API：ARCore 不支持某些 API（包内 preprocess 会校验），用 OpenGLES3 是 AR 设备最稳组合
             PlayerSettings.SetGraphicsAPIs(BuildTarget.Android, new[] { UnityEngine.Rendering.GraphicsDeviceType.OpenGLES3 });
             // 构建 APK（非 AAB）：便于直接安装到测试机

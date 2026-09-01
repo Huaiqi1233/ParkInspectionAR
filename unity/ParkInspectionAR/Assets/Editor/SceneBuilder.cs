@@ -72,6 +72,11 @@ namespace ParkInspectionAR.EditorTools
             var planeManager = originGo.AddComponent<ARPlaneManager>();
             planeManager.requestedDetectionMode = PlaneDetectionMode.Horizontal | PlaneDetectionMode.Vertical;
 
+            // 关键：planePrefab 为空时 ARPlaneManager 只创建裸 ARPlane（无 MeshRenderer），
+            // 平面被检测到但完全不可见 → 用户误判"平面无法识别"。
+            // 用官方 ARPlaneMeshVisualizer（AR Foundation 5.1.5 内置）+ 半透明材质做可视化。
+            planeManager.planePrefab = CreatePlanePrefab();
+
             // ---- 4) AR Raycast Manager：屏幕点 → 平面命中（ARMarkerController 调用）----
             originGo.AddComponent<ARRaycastManager>();
 
@@ -95,6 +100,7 @@ namespace ParkInspectionAR.EditorTools
             originGo.AddComponent<ARMarkerController>();
             originGo.AddComponent<MarkerSubmitter>();
             canvasGo.AddComponent<ReportPanelUI>();
+            canvasGo.AddComponent<ARStatusHud>(); // 顶部常驻状态栏（AR 状态/平面数/引导）
 
             // ---- 8) 保存场景并加入 Build Settings（Android 构建需要场景在列表里）----
             System.IO.Directory.CreateDirectory("Assets/Scenes");
@@ -103,6 +109,50 @@ namespace ParkInspectionAR.EditorTools
 
             Debug.Log("[SceneBuilder] 场景搭建完成: " + ScenePath);
             Selection.activeGameObject = originGo;
+        }
+
+        // 创建 AR 平面可视化预制体（借用官方 ARPlaneMeshVisualizer 组件，AR Foundation 5.1.5 内置）。
+        // 平面网格由官方组件按边界自动生成；半透明填充 + 描边让平面"肉眼可见"，
+        // 解决 planePrefab 为空时"平面检测到了但看不见"的误判。
+        static GameObject CreatePlanePrefab()
+        {
+            System.IO.Directory.CreateDirectory("Assets/Materials");
+
+            // 填充材质：Sprites/Default 是 Cull Off（双面）透明 shader，从任意角度看平面都可见
+            var fillMat = new Material(Shader.Find("Sprites/Default"));
+            fillMat.name = "ARPlaneFill";
+            fillMat.color = new Color(0.2f, 0.85f, 1f, 0.35f);
+            AssetDatabase.DeleteAsset("Assets/Materials/ARPlaneFill.mat");
+            AssetDatabase.CreateAsset(fillMat, "Assets/Materials/ARPlaneFill.mat");
+
+            // 描边材质：不透明，勾勒平面边界
+            var lineMat = new Material(Shader.Find("Sprites/Default"));
+            lineMat.name = "ARPlaneLine";
+            lineMat.color = new Color(0.3f, 0.9f, 1f, 1f);
+            AssetDatabase.DeleteAsset("Assets/Materials/ARPlaneLine.mat");
+            AssetDatabase.CreateAsset(lineMat, "Assets/Materials/ARPlaneLine.mat");
+
+            // 平面模板：ARPlaneMeshVisualizer 自动生成边界网格 + 更新 LineRenderer
+            var go = new GameObject("ARPlane");
+            go.AddComponent<MeshFilter>();
+            var renderer = go.AddComponent<MeshRenderer>();
+            renderer.sharedMaterial = fillMat;
+
+            var line = go.AddComponent<LineRenderer>();
+            line.sharedMaterial = lineMat;
+            line.startWidth = 0.01f;
+            line.endWidth = 0.01f;
+            line.loop = true;          // 闭合多边形边界
+            line.useWorldSpace = false;
+            line.positionCount = 0;
+
+            go.AddComponent<ARPlaneMeshVisualizer>(); // [RequireComponent(ARPlane)] 会自动补 ARPlane
+
+            System.IO.Directory.CreateDirectory("Assets/Prefabs");
+            AssetDatabase.DeleteAsset("Assets/Prefabs/ARPlane.prefab");
+            var prefab = PrefabUtility.SaveAsPrefabAsset(go, "Assets/Prefabs/ARPlane.prefab");
+            Object.DestroyImmediate(go);
+            return prefab;
         }
     }
 }

@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 自定义主 Manifest：在 Unity 默认模板基础上加定位权限（方案 A：GPS 跨设备定位）。
+     注意：这是 Android 权限声明。ARCore 的 CAMERA 等权限由 ARCore AAR 的 manifest
+     经 Gradle 合并注入，无需在此重复。 -->
+<manifest
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+    <!-- 网络：UnityWebRequest 上报后端必需 -->
+    <uses-permission android:name="android.permission.INTERNET" />
+    <!-- 定位（方案 A）：ACCESS_FINE_LOCATION 提供 GPS 精度，COARSE 兜底 -->
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <application>
+        <activity android:name="com.unity3d.player.UnityPlayerActivity"
+                  android:theme="@style/UnityThemeSelector">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+            <meta-data android:name="unityplayer.UnityActivity" android:value="true" />
+        </activity>
+    </application>
+</manifest>

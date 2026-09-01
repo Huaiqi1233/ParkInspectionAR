@@ -123,6 +123,7 @@ export default function MarkerList() {
               <th>优先级</th>
               <th>状态</th>
               <th>位置</th>
+              <th>照片</th>
               <th>创建时间</th>
               <th>操作</th>
             </tr>
@@ -150,7 +151,29 @@ export default function MarkerList() {
                   </select>
                 </td>
                 <td>
-                  {m.position.x.toFixed(1)}, {m.position.y.toFixed(1)}, {m.position.z.toFixed(1)}
+                  AR: {m.position.x.toFixed(1)}, {m.position.y.toFixed(1)}, {m.position.z.toFixed(1)}
+                  {m.location && (m.location.lat !== 0 || m.location.lng !== 0) && (
+                    <div className="gps-cell">
+                      GPS: {m.location.lat.toFixed(6)}, {m.location.lng.toFixed(6)}
+                      {m.location.accuracy > 0 && <>（±{m.location.accuracy.toFixed(1)}m）</>}{' '}
+                      <a
+                        href={`https://uri.amap.com/marker?position=${m.location.lng},${m.location.lat}&name=${encodeURIComponent(m.title)}`}
+                        target="_blank"
+                        rel="noreferrer"
+                      >
+                        📍 地图
+                      </a>
+                    </div>
+                  )}
+                </td>
+                <td>
+                  {m.photo ? (
+                    <a href={`data:image/jpeg;base64,${m.photo}`} target="_blank" rel="noreferrer" title="点击查看大图">
+                      <img src={`data:image/jpeg;base64,${m.photo}`} alt="现场照片" className="photo-thumb" />
+                    </a>
+                  ) : (
+                    <span className="empty-photo">无</span>
+                  )}
                 </td>
                 <td>{new Date(m.createdAt).toLocaleString('zh-CN')}</td>
                 <td>
