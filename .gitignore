@@ -36,6 +36,9 @@ Thumbs.db
 server/park-inspection.db
 server/*.exe
 
-# 工具产物
+# 宸ュ叿浜х墿
 .dsh-vision-router/
 server/server.exe~
+
+# 鍐呴儴 agent 鐘舵�侊紙涓嶅叆搴撲氦浠橈級
+.dshwolf/
